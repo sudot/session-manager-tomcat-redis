@@ -1,11 +1,9 @@
 package net.sudot.sessionmanager.exampleapp.tomcatredis;
 
-import com.google.gson.Gson;
+import com.alibaba.fastjson.JSON;
 import spark.ResponseTransformerRoute;
 
 public abstract class JsonTransformerRoute extends ResponseTransformerRoute {
-
-    private Gson gson = new Gson();
 
     protected JsonTransformerRoute(String path) {
       super(path);
@@ -17,7 +15,7 @@ public abstract class JsonTransformerRoute extends ResponseTransformerRoute {
 
     @Override
     public String render(Object jsonObject) {
-      return gson.toJson(jsonObject);
+      return JSON.toJSONString(jsonObject);
     }
 
 }

@@ -182,11 +182,12 @@ public class RedisSessionManager extends ManagerBase implements Lifecycle {
     }
 
     protected void returnConnection(Jedis jedis, Boolean error) {
-        if (error) {
-            connectionPool.returnBrokenResource(jedis);
-        } else {
-            connectionPool.returnResource(jedis);
-        }
+//        if (error) {
+//            connectionPool.returnBrokenResource(jedis);
+//        } else {
+//            connectionPool.returnResource(jedis);
+//        }
+        jedis.close();
     }
 
     protected void returnConnection(Jedis jedis) {

@@ -1,6 +1,6 @@
 package net.sudot.sessionmanager.exampleapp.tomcatredis;
 
-import com.google.gson.Gson;
+import com.alibaba.fastjson.JSON;
 import spark.ResponseTransformerRoute;
 import spark.Session;
 
@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class SessionJsonTransformerRoute extends ResponseTransformerRoute {
-
-    private Gson gson = new Gson();
 
     protected SessionJsonTransformerRoute(String path) {
       super(path);
@@ -26,16 +24,16 @@ public abstract class SessionJsonTransformerRoute extends ResponseTransformerRou
       if (object instanceof Object[]) {
         Object[] tuple = (Object[])object;
         Session sparkSession = (Session)tuple[0];
-        HttpSession session = (HttpSession)(sparkSession).raw();
+        HttpSession session = sparkSession.raw();
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.putAll((Map<String, Object>)tuple[1]);
         map.put("sessionId", session.getId());
-        return gson.toJson(map);
+        return JSON.toJSONString(map);
       } else if (object instanceof Session) {
         Session sparkSession = (Session)object;
         HashMap<String, Object> sessionMap = new HashMap<String, Object>();
         if (null != sparkSession) {
-          HttpSession session = (HttpSession)(sparkSession).raw();
+          HttpSession session = sparkSession.raw();
           sessionMap.put("sessionId", session.getId());
           HashMap<String, Object> attributesMap = new HashMap<String, Object>();
           for (String key : Collections.list(session.getAttributeNames())) {
@@ -43,7 +41,7 @@ public abstract class SessionJsonTransformerRoute extends ResponseTransformerRou
           }
           sessionMap.put("attributes", attributesMap);
         }
-        return gson.toJson(sessionMap);
+        return JSON.toJSONString(sessionMap);
       } else {
         return "{}";
       }
