@@ -1,6 +1,7 @@
 package net.sudot.sessionmanager.tomcat.redis;
 
 import net.sudot.sessionmanager.serialization.Serializer;
+import org.apache.catalina.Context;
 import org.apache.catalina.Lifecycle;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.LifecycleListener;
@@ -271,7 +272,9 @@ public class RedisSessionManager extends ManagerBase implements Lifecycle {
 
         initializeDatabaseConnection();
 
-        setDistributable(true);
+        // TODO setDistributable被废弃
+        // setDistributable(true);
+        ((Context)container).setDistributable(true);
     }
 
     /**
@@ -334,7 +337,6 @@ public class RedisSessionManager extends ManagerBase implements Lifecycle {
                 session.setNew(true);
                 session.setValid(true);
                 session.setCreationTime(System.currentTimeMillis());
-                session.setMaxInactiveInterval(getMaxInactiveInterval());
                 session.setId(sessionId);
                 session.tellNew();
             }
@@ -502,7 +504,6 @@ public class RedisSessionManager extends ManagerBase implements Lifecycle {
 
             session.setId(id);
             session.setNew(false);
-            session.setMaxInactiveInterval(getMaxInactiveInterval());
             session.access();
             session.setValid(true);
             session.resetDirtyTracking();

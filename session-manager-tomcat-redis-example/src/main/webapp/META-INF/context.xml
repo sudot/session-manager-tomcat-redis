@@ -4,6 +4,5 @@
     <Manager className="net.sudot.sessionmanager.tomcat.redis.RedisSessionManager"
              host="localhost"
              port="6379"
-             database="0"
-             maxInactiveInterval="60"/>
+             database="0"/>
 </Context>
