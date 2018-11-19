@@ -1,8 +1,6 @@
 package net.sudot.sessionmanager.exampleapp.tomcatredis;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import spark.ResponseTransformerRoute;
+import spark.ResponseTransformer;
 import spark.Session;
 
 import javax.servlet.http.HttpSession;
@@ -10,15 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class SessionJsonTransformerRoute extends ResponseTransformerRoute {
-
-    protected SessionJsonTransformerRoute(String path) {
-        super(path);
-    }
-
-    protected SessionJsonTransformerRoute(String path, String acceptType) {
-        super(path, acceptType);
-    }
+public class SessionJsonTransformerRoute implements ResponseTransformer {
 
     @Override
     public String render(Object object) {
@@ -29,7 +19,7 @@ public abstract class SessionJsonTransformerRoute extends ResponseTransformerRou
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.putAll((Map<String, Object>) tuple[1]);
             map.put("sessionId", session.getId());
-            return JSON.toJSONString(map, SerializerFeature.WriteMapNullValue);
+            return JsonUtils.toJson(map);
         } else if (object instanceof Session) {
             Session sparkSession = (Session) object;
             HashMap<String, Object> sessionMap = new HashMap<String, Object>();
@@ -42,7 +32,7 @@ public abstract class SessionJsonTransformerRoute extends ResponseTransformerRou
                 }
                 sessionMap.put("attributes", attributesMap);
             }
-            return JSON.toJSONString(sessionMap, SerializerFeature.WriteMapNullValue);
+            return JsonUtils.toJson(sessionMap);
         } else {
             return "{}";
         }

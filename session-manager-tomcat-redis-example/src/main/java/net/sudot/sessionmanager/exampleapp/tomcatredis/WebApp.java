@@ -13,8 +13,11 @@ import redis.clients.jedis.Protocol;
 import spark.QueryParamsMap;
 import spark.Request;
 import spark.Response;
+import spark.Route;
 import spark.Session;
+import spark.utils.IOUtils;
 
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
@@ -132,20 +135,30 @@ public class WebApp implements spark.servlet.SparkApplication {
         }
     }
 
+    @Override
     public void init() {
+        get("/", new Route() {
+            @Override
+            public Object handle(Request request, Response response) throws Exception {
+                try (InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream("../../index.jsp")) {
+                    return IOUtils.toString(resource);
+                }
+            }
+        });
 
         // /session
 
-        get(new SessionJsonTransformerRoute("/session", "application/json") {
+        SessionJsonTransformerRoute sessionJsonTransformerRoute = new SessionJsonTransformerRoute();
+        get("/session", "application/json", new Route() {
             @Override
-            public Object handle(Request request, Response response) {
+            public Object handle(Request request, Response response) throws Exception {
                 Session session = request.session(false);
                 return session;
             }
-        });
+        }, sessionJsonTransformerRoute);
 
 
-        put(new SessionJsonTransformerRoute("/session", "application/json") {
+        put("/session", "application/json", new Route() {
             @Override
             public Object handle(Request request, Response response) {
                 Session session = request.session();
@@ -153,9 +166,9 @@ public class WebApp implements spark.servlet.SparkApplication {
                 updateSessionFromQueryParamsMap(session, queryMap);
                 return session;
             }
-        });
+        }, sessionJsonTransformerRoute);
 
-        post(new SessionJsonTransformerRoute("/session", "application/json") {
+        post("/session", "application/json", new Route() {
             @Override
             public Object handle(Request request, Response response) {
                 Session session = request.session();
@@ -163,29 +176,29 @@ public class WebApp implements spark.servlet.SparkApplication {
                 updateSessionFromQueryParamsMap(session, queryMap);
                 return session;
             }
-        });
+        }, sessionJsonTransformerRoute);
 
-        delete(new SessionJsonTransformerRoute("/session", "application/json") {
+        delete("/session", "application/json", new Route() {
             @Override
             public Object handle(Request request, Response response) {
                 request.session().raw().invalidate();
                 return null;
             }
-        });
+        }, sessionJsonTransformerRoute);
 
 
         // /session/attributes
 
-        get(new SessionJsonTransformerRoute("/session/attributes", "application/json") {
+        get("/session/attributes", "application/json", new Route() {
             @Override
             public Object handle(Request request, Response response) {
                 HashMap<String, Object> map = new HashMap<String, Object>();
                 map.put("keys", request.session().attributes());
                 return new Object[]{request.session(), map};
             }
-        });
+        }, sessionJsonTransformerRoute);
 
-        get(new SessionJsonTransformerRoute("/session/attributes/:key", "application/json") {
+        get("/session/attributes/:key", "application/json", new Route() {
             @Override
             public Object handle(Request request, Response response) {
                 String key = request.params(":key");
@@ -194,9 +207,9 @@ public class WebApp implements spark.servlet.SparkApplication {
                 map.put("value", request.session().attribute(key));
                 return new Object[]{request.session(), map};
             }
-        });
+        }, sessionJsonTransformerRoute);
 
-        post(new SessionJsonTransformerRoute("/session/attributes/:key", "application/json") {
+        post("/session/attributes/:key", "application/json", new Route() {
             @Override
             public Object handle(Request request, Response response) {
                 String key = request.params(":key");
@@ -213,9 +226,9 @@ public class WebApp implements spark.servlet.SparkApplication {
                 }
                 return new Object[]{request.session(), map};
             }
-        });
+        }, sessionJsonTransformerRoute);
 
-        delete(new SessionJsonTransformerRoute("/session/attributes/:key", "application/json") {
+        delete("/session/attributes/:key", "application/json", new Route() {
             @Override
             public Object handle(Request request, Response response) {
                 String key = request.params(":key");
@@ -227,12 +240,12 @@ public class WebApp implements spark.servlet.SparkApplication {
                 map.put("oldValue", oldValue);
                 return new Object[]{request.session(), map};
             }
-        });
+        }, sessionJsonTransformerRoute);
 
 
         // /sessions
-
-        get(new JsonTransformerRoute("/sessions", "application/json") {
+        JsonTransformerRoute jsonTransformerRoute = new JsonTransformerRoute();
+        get("/sessions", "application/json", new Route() {
             @Override
             public Object handle(Request request, Response response) {
                 Jedis jedis = null;
@@ -248,9 +261,9 @@ public class WebApp implements spark.servlet.SparkApplication {
                     }
                 }
             }
-        });
+        }, jsonTransformerRoute);
 
-        delete(new JsonTransformerRoute("/sessions", "application/json") {
+        delete("/sessions", "application/json", new Route() {
             @Override
             public Object handle(Request request, Response response) {
                 Jedis jedis = null;
@@ -267,12 +280,12 @@ public class WebApp implements spark.servlet.SparkApplication {
                     }
                 }
             }
-        });
+        }, jsonTransformerRoute);
 
 
         // /settings
 
-        get(new SessionJsonTransformerRoute("/settings/:key", "application/json") {
+        get("/settings/:key", "application/json", new Route() {
             @Override
             public Object handle(Request request, Response response) {
                 String key = request.params(":key");
@@ -292,9 +305,9 @@ public class WebApp implements spark.servlet.SparkApplication {
 
                 return new Object[]{request.session(), map};
             }
-        });
+        }, sessionJsonTransformerRoute);
 
-        post(new SessionJsonTransformerRoute("/settings/:key", "application/json") {
+        post("/settings/:key", "application/json", new Route() {
             @Override
             public Object handle(Request request, Response response) {
                 String key = request.params(":key");
@@ -317,7 +330,7 @@ public class WebApp implements spark.servlet.SparkApplication {
 
                 return new Object[]{request.session(), map};
             }
-        });
+        }, sessionJsonTransformerRoute);
 
     }
 
